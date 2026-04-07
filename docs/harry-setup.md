@@ -7,23 +7,33 @@ Harry is Larry's audio agent. Text-to-speech via Gemini TTS, music generation vi
 ## Quick Start
 
 ```bash
-# Dry run — show segments without generating
-python 03-projects/harry/harry-tts.py "path/to/file.md" --dry
+# --- TTS (Text-to-Speech) ---
+python 03-projects/harry/harry-tts.py "path/to/file.md" --dry   # Preview segments
+python 03-projects/harry/harry-tts.py "path/to/file.md"          # Generate
+python 03-projects/harry/harry-tts.py "file.md" --voice Erinome  # Voice override
 
-# Generate TTS
-python 03-projects/harry/harry-tts.py "path/to/file.md"
+# --- STT (Speech-to-Text + Mood) ---
+python 03-projects/harry/harry-stt.py                # Push-to-talk loop (Ctrl+Shift+L)
+python 03-projects/harry/harry-stt.py --once          # Single recording
+python 03-projects/harry/harry-stt.py --once --note   # Record → save as vault note
+python 03-projects/harry/harry-stt.py --duration 10   # Fixed 10 second recording
+python 03-projects/harry/harry-stt.py --json           # Raw JSON output (for piping)
 
-# With speed override
-python 03-projects/harry/harry-tts.py "file.md" --speed 0.9
+# --- Realtime Voice (Bidirectional) ---
+python 03-projects/harry/harry-live.py                # Start conversation (default voice)
+python 03-projects/harry/harry-live.py --voice Erinome # Choose voice
+python 03-projects/harry/harry-live.py --device 1      # Select microphone
+python 03-projects/harry/harry-live.py --transcript-only # Text only, no audio playback
 
-# With voice override (all segments same voice)
-python 03-projects/harry/harry-tts.py "file.md" --voice Erinome
+# --- Utilities ---
+python 03-projects/harry/harry-stt.py --list-devices   # List microphones
 ```
 
 ---
 
 ## Architecture
 
+### TTS (Text-to-Speech)
 ```
 User → Larry → harry-tts.py "file.md"
   → parse_voice_markup() → segment per ::voice[name]
@@ -34,6 +44,26 @@ User → Larry → harry-tts.py "file.md"
   → Saved to {{AUDIO_PATH}}/01-tts/{file.stem}.mp3
   → log_cost() → cost-log.csv
 ```
+
+### STT (Speech-to-Text + Mood)
+```
+Microphone → sounddevice (16kHz PCM) → WAV bytes
+  → Gemini 2.5 Flash (audio input + mood prompt)
+  → JSON: {transcript, mood: {energy, mood, pace, confidence}}
+  → mood-log (L4) + optional vault note (00-inbox/)
+  → log_cost()
+```
+
+### Realtime Voice (Bidirectional)
+```
+Microphone → sounddevice (16kHz PCM) → Gemini Live API (WebSocket)
+  ← Audio response (24kHz PCM) → sounddevice playback
+  ← Text transcripts (both sides) → transcript-log (L4)
+  → mood-log (L4) + log_cost()
+```
+Model: `gemini-live-2.5-flash-native-audio` (GA on Vertex AI).
+30 HD voices, barge-in, VAD, affective dialog.
+Note: Non-English languages (e.g. Swedish) are forced via system instruction — not officially supported.
 
 ---
 
@@ -169,10 +199,24 @@ Gemini TTS Vertex AI is free/token-based — `cost_usd` logged as 0.0.
 
 ---
 
+## Dependencies
+
+```bash
+pip install sounddevice numpy keyboard google-genai
+```
+
+- `sounddevice` + `numpy` — microphone capture and audio playback (no C++ build tools needed)
+- `keyboard` — hotkey detection (push-to-talk)
+- `google-genai` — Gemini API (TTS, STT, Live)
+- `ffmpeg` — audio conversion/mixing (system install)
+
 ## Status
 
 - [x] Gemini TTS (harry-tts.py) — live
+- [x] Gemini STT + Mood (harry-stt.py) — live
+- [x] Gemini Realtime Voice (harry-live.py) — live (Swedish via system instruction)
 - [x] Venice music/SFX — available via Playwright
 - [x] FFmpeg mixing — live
-- [ ] STT (speech-to-text) — not implemented
+- [ ] Larry skills (/listen, /talk) — planned
+- [ ] Mood pattern analysis (night shift) — planned
 - [ ] Automatic Suno integration — planned
