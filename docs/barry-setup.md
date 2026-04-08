@@ -1,6 +1,6 @@
 # Barry Setup — Image Generation and Visual Memory
 
-Barry is Larry's image agent. Generates images via Venice Studio (Playwright), sorts and indexes visual material.
+Barry is Larry's image agent. Generates images via Venice Chat (Playwright), sorts and indexes visual material.
 
 ---
 
@@ -29,7 +29,7 @@ python 03-projects/barry/barry-sort.py
 
 ```
 User → Larry → barry.py (CLI wrapper)
-  → Playwright opens Venice Studio (browser, persistent profile)
+  → Playwright opens Venice Chat (browser, persistent profile)
   → Prompt optimized and sent in Venice UI
   → Image generated (Chroma model, free tier)
   → Visual QA (Playwright snapshot → vision review)
@@ -45,7 +45,7 @@ User → Larry → barry.py (CLI wrapper)
 
 ```
 {{ASSETS_PATH}}/
-├── venice/                 ← AI-generated images (Venice Studio)
+├── venice/                 ← AI-generated images (Venice Chat)
 │   ├── nsfw/               ← Privacy 3-4
 │   │   ├── solo-f/
 │   │   ├── solo-m/
@@ -86,11 +86,11 @@ barry-NNNNN.{ext}
 
 ## Model
 
-**Default: Chroma** (free, Venice Studio UI)
+**Default: Chroma** (free, Venice Chat UI)
 
 - Adherence: **always 3** — never change this
 - No anonymous models (cost credits, avoid)
-- Venice Studio UI via Playwright — never direct API
+- Venice Chat UI via Playwright — never direct API
 
 ---
 
@@ -106,13 +106,13 @@ barry-NNNNN.{ext}
 
 Filename suffix: `-2x` or `-4x`. Original (1x) deleted after upscale.
 
-Engine: Real-ESRGAN (Vulkan GPU, local) via `barry-upscale.py`.
+Engine: Venice UI upscale (free for Pro) via Playwright. API upscale only if explicitly requested (costs credits). Settings: creativity 0.20, replication 0.70.
 
 ---
 
 ## QA Flow
 
-1. Image generated in Venice Studio
+1. Image generated in Venice Chat
 2. Playwright takes snapshot
 3. Visual review: fingers, anatomy, composition
 4. On fail: auto-regenerate immediately without asking
@@ -120,7 +120,7 @@ Engine: Real-ESRGAN (Vulkan GPU, local) via `barry-upscale.py`.
 
 ---
 
-## Venice Studio Settings
+## Venice Chat Settings
 
 Always verify BEFORE generating:
 - Variants: per request
@@ -135,7 +135,7 @@ Always verify BEFORE generating:
 | Script | Function |
 |--------|---------|
 | `barry.py` | CLI wrapper, delegates to barry-playwright.py and barry-upscale.py |
-| `barry-playwright.py` | Playwright automation: Venice Studio UI → image |
+| `barry-playwright.py` | Playwright automation: Venice Chat UI → image |
 | `barry-sort.py` | Vision analysis + sorting of inbox images |
 | `barry-upscale.py` | Real-ESRGAN upscaling (local GPU) |
 | `barry_counter.py` | Counter management |

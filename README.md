@@ -19,6 +19,7 @@ larry-scaffold/
 │   ├── larry-setup.md            <- Larry (Claude Code) configuration
 │   ├── barry-setup.md            <- Barry (image agent) setup
 │   ├── harry-setup.md            <- Harry (audio agent) setup
+│   ├── mempalace-setup.md        <- MemPalace (semantic memory) setup + GPU config
 │   ├── memory-system.md          <- Persistent memory architecture
 │   └── privacy-architecture.md   <- Privacy layers + gatekeeper agent
 ├── templates/
@@ -40,7 +41,7 @@ larry-scaffold/
 | Agent | Modality | What it does | Technology |
 |-------|----------|-------------|------------|
 | **Larry** | Text | Orchestrator. Thinks, writes, codes, plans, remembers. | Claude Code (Opus/Sonnet) |
-| **Barry** | Image | Generates images, sorts visual material, maintains visual index. | Venice Studio via Playwright |
+| **Barry** | Image | Generates images, sorts visual material, maintains visual index. | Venice Chat via Playwright |
 | **Harry** | Audio | Text-to-speech, music, sound effects, mixing. | Gemini TTS (Vertex AI) + FFmpeg |
 | **Parry** | Filter | Privacy enforcement, tone control, quality gating. | Python middleware |
 
@@ -68,6 +69,7 @@ Larry orchestrates everything. Barry and Harry are invoked by Larry when needed.
 | **Obsidian** (v1.12.4+) | Yes | Vault editor with CLI support |
 | **Git** + GitHub | Yes | Vault sync (private repo recommended) |
 | **Python 3.10+** | Yes | Agent scripts |
+| **For MemPalace:** NVIDIA GPU (CUDA) | Recommended | Semantic memory layer (works on CPU too) |
 | **For Barry:** Venice.ai account, Edge, Playwright | Optional | Image generation agent |
 | **For Harry:** GCP + Vertex AI, FFmpeg | Optional | Audio/TTS agent |
 
@@ -126,6 +128,7 @@ Throughout all files, replace these with your own values:
 | [docs/larry-setup.md](docs/larry-setup.md) | Larry (Claude Code) configuration details |
 | [docs/barry-setup.md](docs/barry-setup.md) | Barry (image agent) pipeline |
 | [docs/harry-setup.md](docs/harry-setup.md) | Harry (audio agent) pipeline |
+| [docs/mempalace-setup.md](docs/mempalace-setup.md) | MemPalace semantic memory + GPU acceleration |
 | [docs/memory-system.md](docs/memory-system.md) | How persistent memory works |
 | [docs/privacy-architecture.md](docs/privacy-architecture.md) | Privacy layers and enforcement |
 
