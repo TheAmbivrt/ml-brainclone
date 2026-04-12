@@ -38,6 +38,24 @@ echo "--- Active Context ---"
 cat "$VAULT/_active-context.md" 2>/dev/null | head -60 || echo "(no _active-context.md found)"
 echo ""
 
+# --- TEMPORAL AWARENESS ---
+# Gives Larry a sense of time: clock, day, upcoming calendar events.
+# Requires: gws CLI (https://github.com/nicholasgasior/gws) authenticated.
+
+echo "--- Time & Calendar ---"
+echo "Now: $(date '+%Y-%m-%d %H:%M') ($(date '+%A'))"
+echo ""
+if command -v gws &>/dev/null; then
+    echo "Today:"
+    gws calendar +agenda --today --format table 2>/dev/null || echo "(no events or GWS unavailable)"
+    echo ""
+    echo "Tomorrow:"
+    gws calendar +agenda --tomorrow --format table 2>/dev/null || echo "(no events)"
+else
+    echo "(gws not installed — calendar unavailable)"
+fi
+echo ""
+
 echo "=== INIT DONE — $(date +%Y-%m-%d) ==="
 
 # NOTE: Playwright is NOT started at session init.
