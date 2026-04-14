@@ -9,30 +9,31 @@ A personal AI second brain consisting of four agents (Larry, Barry, Harry, Parry
 ```
 ┌────────────────────────────────────────────────────────────────┐
 │                         THE USER                               │
-└──────────────────────────┬─────────────────────────────────────┘
-                           │ (Claude Code CLI / shell)
-                           ▼
-┌────────────────────────────────────────────────────────────────┐
-│                    LARRY (Claude Code)                         │
-│  Orchestrator · Text · Knowledge · Memory · Planning           │
-│                                                                │
-│  CLAUDE.md (rules) + _active-context.md (status)              │
-│  MEMORY.md (persistent memories) + Skills (.claude/commands/)  │
-│  Hooks (SessionStart: load-context.sh)                         │
-└──┬──────────┬───────────┬──────────────┬────────────────────┬──┘
-   │          │           │              │                    │
-   ▼          ▼           ▼              ▼                    ▼
-BARRY       HARRY       PARRY         GWS CLI           Obsidian CLI
-(Image)     (Audio)   (Gatekeeper)  (Gmail/Cal/Drive)   (Vault ops)
-   │          │           │
-   ▼          ▼           ▼
-Venice     Gemini     Privacy/Tone/
-Studio     TTS +      Quality scan
-(Playwright) FFmpeg
-   │          │
-   ▼          ▼
+└──────────┬───────────────────────────────────────┬────────────┘
+           │ (Claude Code CLI / shell)              │ (Telegram)
+           ▼                                        ▼
+┌──────────────────────────┐            ┌───────────────────────┐
+│    LARRY (Claude Code)   │◄──────────►│  larry_bot_listener   │
+│  Orchestrator · Text ·   │            │  (long-polling daemon)│
+│  Knowledge · Memory ·    │            └──────────┬────────────┘
+│  Planning                │                       │
+│                          │            notify-queue.json
+│  CLAUDE.md + context     │
+│  MEMORY.md + Skills      │──larry_notify.py──► Telegram Bot API
+│  Hooks (SessionStart)    │
+└──┬──────┬──────┬──────┬──┘
+   │      │      │      │
+   ▼      ▼      ▼      ▼
+BARRY   HARRY  PARRY  GWS CLI / Obsidian CLI
+(Image) (Audio)(Gate) (Gmail/Cal/Drive/Vault)
+   │      │      │
+   ▼      ▼      ▼
+Venice  Gemini  Privacy/Tone/
+Studio  TTS +   Quality scan
+(PW)    FFmpeg
+   │      │
+   ▼      ▼
 {{ASSETS_PATH}}  {{AUDIO_PATH}}
-(Images)         (Audio)
 ```
 
 ---
@@ -45,6 +46,7 @@ Studio     TTS +      Quality scan
 | **Barry** | Image | Generation, sorting, visual memory | Venice Studio via Playwright (browser) |
 | **Harry** | Audio | TTS, music, SFX, mixing | Gemini TTS (Vertex AI) + FFmpeg |
 | **Parry** | Filter | Privacy, tone, quality control | parry.py (Python middleware) |
+| **Telegram** | Notifications | Two-way async communication | Telegram Bot API + larry_notify.py + larry_bot_listener.py |
 
 ---
 
@@ -87,6 +89,22 @@ OS Task Scheduler
 ```
 User → Larry → gws gmail / gws calendar / gws drive
   → Parry gate (tone + privacy) → Send/archive/fetch
+```
+
+### Notifications (outbound)
+```
+Any script → larry_notify.notify(text, title, buttons)
+  → Telegram Bot API → User's Telegram app
+  → Optional: inline keyboard (Approve / Edit / Skip)
+```
+
+### Notifications (inbound)
+```
+User sends Telegram message or taps inline button
+  → larry_bot_listener.py (long-polling daemon)
+    → command (/status /queue /stop) → handled inline
+    → callback (approve/edit/skip) → written to notify-queue.json
+    → freetext → queued + claude -p reply (Larry persona, neutral cwd)
 ```
 
 ---
