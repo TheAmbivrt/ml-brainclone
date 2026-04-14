@@ -15,16 +15,19 @@ A personal AI second brain consisting of four agents (Larry, Barry, Harry, Parry
 ┌──────────────────────────┐            ┌───────────────────────┐
 │    LARRY (Claude Code)   │◄──────────►│  larry_bot_listener   │
 │  Orchestrator · Text ·   │            │  (long-polling daemon)│
-│  Knowledge · Memory ·    │            └──────────┬────────────┘
-│  Planning                │                       │
-│                          │            notify-queue.json
-│  CLAUDE.md + context     │
-│  MEMORY.md + Skills      │──larry_notify.py──► Telegram Bot API
-│  Hooks (SessionStart)    │
-└──┬──────┬──────┬──────┬──┘
-   │      │      │      │
-   ▼      ▼      ▼      ▼
-BARRY   HARRY  PARRY  GWS CLI / Obsidian CLI
+│  Knowledge · Memory ·    │            │                       │
+│  Planning                │            │  Pipelines:           │
+│                          │            │  ├─ Text → claude -p  │
+│  CLAUDE.md + context     │            │  ├─ Photo → Gemini    │
+│  MEMORY.md + Skills      │            │  │         vision     │
+│  Hooks (SessionStart)    │            │  ├─ Voice → Gemini    │
+│                          │            │  │         STT + TTS  │
+│  larry_notify.py ────────┼──────────► │  └─ Callbacks         │
+│                          │  Telegram  │                       │
+└──┬──────┬──────┬──────┬──┘  Bot API   ├─► notify-queue.json   │
+   │      │      │      │               ├─► telegram/YYYY-MM-DD │
+   ▼      ▼      ▼      ▼               └─► chat-history.json   │
+BARRY   HARRY  PARRY  GWS CLI          └───────────────────────┘
 (Image) (Audio)(Gate) (Gmail/Cal/Drive/Vault)
    │      │      │
    ▼      ▼      ▼
@@ -46,7 +49,7 @@ Studio  TTS +   Quality scan
 | **Barry** | Image | Generation, sorting, visual memory | Venice Studio via Playwright (browser) |
 | **Harry** | Audio | TTS, music, SFX, mixing | Gemini TTS (Vertex AI) + FFmpeg |
 | **Parry** | Filter | Privacy, tone, quality control | parry.py (Python middleware) |
-| **Telegram** | Notifications | Two-way async communication | Telegram Bot API + larry_notify.py + larry_bot_listener.py |
+| **Telegram** | Multi-modal | Text + photo + voice, async two-way | Telegram Bot API + Gemini vision/STT/TTS + claude -p |
 
 ---
 
@@ -98,13 +101,51 @@ Any script → larry_notify.notify(text, title, buttons)
   → Optional: inline keyboard (Approve / Edit / Skip)
 ```
 
-### Notifications (inbound)
+### Telegram inbound — Text
 ```
-User sends Telegram message or taps inline button
+User sends text message
   → larry_bot_listener.py (long-polling daemon)
-    → command (/status /queue /stop) → handled inline
+  → sentiment analysis (keyword-based) → mood tag
+  → build prompt with conversation history (last 10 messages)
+  → claude -p --system-prompt <Larry persona> (45s timeout, neutral cwd)
+  → text reply to Telegram (Markdown, fallback plain)
+  → if /voice enabled: TTS → voice reply (sentiment-adaptive)
+  → logged in daily log + chat history
+  → queue entry written to notify-queue.json
+```
+
+### Telegram inbound — Photo
+```
+User sends photo
+  → larry_bot_listener.py
+  → download largest resolution from Telegram API
+  → save to {{ASSETS_PATH}}/imported/telegram/
+  → Gemini 2.5 Flash vision analysis → JSON:
+    {category, title, description, tags, extracted, vault_note, suggested_action}
+  → create vault-note in {{VAULT_PATH}}/00-inbox/ (if vault_note=true)
+  → categorized reply (receipt/inspiration/screenshot/document/photo/meme)
+  → logged in daily log + queue entry
+```
+
+### Telegram inbound — Voice
+```
+User sends voice message
+  → larry_bot_listener.py
+  → download .oga/.ogg from Telegram API
+  → save to {{AUDIO_PATH}}/imported/telegram/
+  → Gemini 2.5 Flash audio transcription → JSON:
+    {transcript, language, summary, tags, mood, action_items}
+  → create vault-note in {{VAULT_PATH}}/00-inbox/
+  → Larry replies to transcript (text + optional TTS voice)
+  → logged in daily log + queue entry
+```
+
+### Telegram inbound — Callbacks & Commands
+```
+User taps inline button or sends command
+  → larry_bot_listener.py
+    → command (/status /voice /queue /stop) → handled inline
     → callback (approve/edit/skip) → written to notify-queue.json
-    → freetext → queued + claude -p reply (Larry persona, neutral cwd)
 ```
 
 ---
