@@ -30,8 +30,10 @@ ml-brainclone/
 │   ├── meeting.md                <- Meeting notes template
 │   └── research.md               <- Research note template
 ├── scripts/
-│   ├── load-context.sh           <- Session init hook (reads active context)
-│   └── collect-vault-data.sh     <- Nightly vault data collection
+│   ├── load-context.sh               <- Session init hook (reads active context)
+│   ├── collect-vault-data.sh         <- Nightly vault data collection
+│   ├── parry-scheduled-task.xml      <- Windows Task Scheduler template for Parry autostart
+│   └── register-parry-task.ps1       <- One-shot registration script (run once at setup)
 ├── .gitignore                    <- Template .gitignore for your vault
 └── LICENSE
 ```

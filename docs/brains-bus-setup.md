@@ -192,10 +192,33 @@ def my_rule(ev: dict):
 ## Operations
 
 ### Starting at boot
-Options:
-1. **Manual** — run `parry-start.ps1` first time per session
-2. **Task Scheduler** — "At startup" trigger → runs `parry-start.ps1` (recommended for persistent setup)
-3. **Terminal startup** — put it in your WT/PS profile
+
+**Recommended: Task Scheduler XML (Windows)**
+
+The scaffold includes a ready-made Task Scheduler template:
+
+```
+scripts/
+  parry-scheduled-task.xml   ← Task Scheduler XML template
+  register-parry-task.ps1    ← One-shot registration script
+```
+
+1. Copy both files into `03-projects/ml-brainclone/bus/startup/` in your vault.
+2. Replace `{{VAULT_PATH}}` in both files with your actual vault path.
+3. Register (run once, no admin required):
+   ```powershell
+   powershell -File 03-projects/ml-brainclone/bus/startup/register-parry-task.ps1
+   ```
+4. Verify:
+   ```powershell
+   schtasks /Query /TN LarryParryGuardian /V /FO LIST
+   ```
+
+The task is named `LarryParryGuardian`. It triggers 10 seconds after logon, restarts on failure (up to 3 times), and runs hidden.
+
+Other options:
+- **Manual** — run `parry-start.ps1` at the start of each session
+- **Terminal startup** — add to your Windows Terminal / PowerShell profile
 
 ### Monitoring
 - PID file: `notifications/parry-guardian.pid`
@@ -215,6 +238,23 @@ If heartbeat > 2 min stale, Parry is hung. Restart with `parry-stop.ps1` + `parr
 - **Resilience:** if Parry is down, events pile up as pending. No auto-flush (deliberate: safety > availability).
 
 If v1 becomes insufficient: swap backend to Redis pub/sub or ZeroMQ IPC. The API (`emit / inbox / request / reply`) is designed to survive the swap.
+
+---
+
+## Security — API Keys
+
+Never hardcode credentials in scripts. Parry's `anon_model_cost` and `forefront_leakage` rules scan event payloads — if a script accidentally stages an API key in a commit, Parry will flag it pre-bus.
+
+**Pattern:** store all keys in `_private/config` (or `_private/larry-telegram-config.json` for the bot), load at runtime:
+
+```python
+import json, pathlib
+
+cfg = json.loads(pathlib.Path("_private/config").read_text())
+api_key = cfg["anthropic_api_key"]
+```
+
+`_private/` is gitignored and privacy-level 3. Never commit it. If a key was staged in a prior commit: rotate it immediately.
 
 ---
 
