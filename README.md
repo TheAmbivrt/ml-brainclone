@@ -24,6 +24,7 @@ ml-brainclone/
 │   ├── parry-setup.md            <- Parry (gatekeeper agent) setup + commands
 │   ├── brains-bus-setup.md       <- SQLite event bus between agents, guarded by Parry
 │   ├── task-dispatch.md          <- Inter-agent work queue: dispatch from any channel
+│   ├── proactivity.md            <- Larry acts, doesn't just report: scanner + dispatcher + nightly triggers
 │   └── privacy-architecture.md   <- Privacy layers + auto-tagging + tone learning
 ├── templates/
 │   ├── daily.md                  <- Daily note template
@@ -33,6 +34,8 @@ ml-brainclone/
 ├── scripts/
 │   ├── load-context.sh               <- Session init hook (reads active context)
 │   ├── collect-vault-data.sh         <- Nightly vault data collection
+│   ├── proactive_scanner.py          <- Session-init scanner: auto-dispatch tasks for actionable state
+│   ├── event_dispatcher.py           <- Bus-subscribing daemon: rules-based task generation
 │   ├── harry_logger.py               <- Shared transcript-logger for Harry agents
 │   ├── barry_audit.py                <- Unified JSONL audit-log for Barry events
 │   ├── gws_mailer.py                 <- Outgoing-mail helper with local archiving
@@ -141,6 +144,7 @@ Throughout all files, replace these with your own values:
 | [docs/privacy-architecture.md](docs/privacy-architecture.md) | Privacy layers and enforcement |
 | [docs/logging-architecture.md](docs/logging-architecture.md) | Save-everything rule: transcript, audit, mail, event-bus |
 | [docs/task-dispatch.md](docs/task-dispatch.md) | Inter-agent work queue: dispatch tasks from any channel (Telegram, mail, CLI) |
+| [docs/proactivity.md](docs/proactivity.md) | Larry acts, doesn't just report: init-scanner + bus dispatcher + nightly triggers |
 
 ---
 
