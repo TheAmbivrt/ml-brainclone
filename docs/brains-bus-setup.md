@@ -5,7 +5,7 @@ SQLite-based event bus between Larry sessions, Barry, Harry — with Parry as th
 - **Larry** — thinks, plans, orchestrates
 - **Barry** — sees (images)
 - **Harry** — hears and speaks (audio)
-- **Parry** — guards, filters, judges (now also the bus gatekeeper)
+- **Parry** — guards, filters, judges (bus gatekeeper with oversight of all traffic)
 
 ---
 
@@ -21,6 +21,35 @@ With it:
 - Larry posts `barry-request`, Barry picks up, posts `barry-result` with matching `correlation_id`.
 - Parry sees every event before delivery — can block privacy violations, flag destructive ops.
 - Diary + knowledge graph remain long-term memory. Bus is short-term + commands.
+
+### Design Principles
+
+1. **Safety first** — if Parry is down, traffic stops. No auto-flush.
+2. **Idempotent read** — `read_by` list per event; each brain reads at most once.
+3. **Broadcast by default** — `to='*'` accepts all listeners but delivers only once per brain.
+4. **Correlation-id** — request/reply linked via 12-char hex id, no slow JOINs.
+5. **Everything is events** — even lifecycle (session-start/end). Free audit log.
+6. **SQLite WAL** — one file, no daemon, robust across reboots.
+
+---
+
+## Event Lifecycle
+
+```
+  [1] Producer                [2] SQLite                 [3] Parry                 [4] Consumer
+      (Larry/Barry/Harry)         (events table)             (parry_service)            (Larry/Barry/Harry)
+
+  emit("kind", payload)  -->  INSERT (verdict=NULL) -->  evaluate() rules  -->  read_inbox(brain)
+                                                         set_verdict(...)       (sees only verdict != NULL && != 'block'
+                                                                                 && brain not in read_by)
+```
+
+Timing budget:
+- Insert: ~1 ms
+- Parry poll: 1.5 s (worst case)
+- Parry evaluation: ~0.1 ms per rule
+- Consumer poll: 2 s (worst case)
+- **End-to-end: 1-4 seconds** typical
 
 ---
 
@@ -157,17 +186,25 @@ with session("barry", meta={"model": "chroma"}):
 | `destructive_git` | git push --force, reset --hard, rm -rf, clean -f | **flag** |
 | `anon_model_cost` | Barry request with a paid-credit model | **flag** |
 | `email_external` | Email to a non-self recipient | **flag** |
-| `forefront_leakage` | Cross-contamination between separated work contexts | **flag** |
+| `context_leakage` | Cross-contamination between separated work contexts | **flag** |
 
 Add rules by decorating a function with `@rule` in `parry_guardian.py`. First rule to return a tuple wins.
 
 ```python
 @rule
-def my_rule(ev: dict):
+def my_rule(ev: dict) -> tuple[str, str] | None:
     if ev["kind"] == "email-send" and suspicious(ev["payload"]):
         return ("flag", "suspicious email")
-    return None
+    return None  # no decision, continue to next rule
 ```
+
+### Parry Oversight Model
+
+Parry has "oversight" — it sees the entire communication flow and can:
+
+- **Block** events (e.g. private-path links to external channels) — recipient never sees them
+- **Flag** events (e.g. paid model usage, external email) — recipient sees `parry_verdict='flag'` + `parry_note` and can choose to abort
+- **Pass** events (normal case) — `parry_verdict='pass'`, recipient reads normally
 
 ---
 
@@ -228,6 +265,23 @@ Other options:
 
 If heartbeat > 2 min stale, Parry is hung. Restart with `parry-stop.ps1` + `parry-start.ps1`.
 
+### Bot-Listener Watchdog
+
+Parry also keeps the Telegram bot listener alive. Every 30 seconds:
+- Reads `notifications/bot-listener.pid` + `bot-listener.heartbeat`
+- If PID is dead or heartbeat > 180s stale, spawns a new listener (detached, survives Parry restart)
+- Protected against duplicates — the bot-listener's own `_acquire_pid_lock` decides; Parry never touches the PID file
+
+### Planned Integrations
+
+| Agent | Current State | Plan |
+|---|---|---|
+| Larry (Claude Code) | Bash calls to `brains-bus.py` CLI | MCP server later for native tool access |
+| Barry (`barry.py`) | No calls | Wrap: `with session("barry"): ...` + emit status + listen for requests |
+| Harry STT/TTS | No calls | Emit `harry-stt-complete` + `harry-tts-done` events |
+| Telegram listener | Separate notify queue | Switch to bus for inbox notifications |
+| Nightly automation | None | Broadcast `nightshift-batch-N-done` events |
+
 ---
 
 ## Performance + limits (v1)
@@ -243,7 +297,7 @@ If v1 becomes insufficient: swap backend to Redis pub/sub or ZeroMQ IPC. The API
 
 ## Security — API Keys
 
-Never hardcode credentials in scripts. Parry's `anon_model_cost` and `forefront_leakage` rules scan event payloads — if a script accidentally stages an API key in a commit, Parry will flag it pre-bus.
+Never hardcode credentials in scripts. Parry's `anon_model_cost` and `context_leakage` rules scan event payloads — if a script accidentally stages an API key in a commit, Parry will flag it pre-bus.
 
 **Pattern:** store all keys in `_private/config` (or `_private/larry-telegram-config.json` for the bot), load at runtime:
 

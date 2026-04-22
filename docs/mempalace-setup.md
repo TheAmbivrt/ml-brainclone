@@ -433,7 +433,7 @@ python -m mempalace mine {{VAULT_PATH}}
 
 Output: `nattskift/logs/sysmon-YYYY-MM-DD-HHMM.json` with peak CPU/RAM/VRAM and time series.
 
-Reference: Marcus peaks at ~10.6GB RAM, 1.9GB VRAM idle. Full mine ~20 min on RTX 2080.
+Reference: typical peaks at ~10.6GB RAM, 1.9GB VRAM idle. Full mine ~20 min on RTX 2080.
 
 ---
 

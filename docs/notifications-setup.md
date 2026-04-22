@@ -97,7 +97,7 @@ All inbound data written to `_private/notify-queue.json`.
 ### Text → Conversational Reply
 
 ```
-Marcus sends text
+User sends text
   → sentiment analysis (keyword-based)
   → build prompt with conversation history (last 10 messages)
   → claude -p --system-prompt <persona> (45s timeout)
@@ -109,7 +109,7 @@ Marcus sends text
 ### Photo → Vision Analysis
 
 ```
-Marcus sends photo
+User sends photo
   → download largest resolution from Telegram API
   → save to {{ASSETS_PATH}}/imported/telegram/
   → Claude Agent SDK (primary) — spawns `claude` via bundled CLI,
@@ -137,7 +137,7 @@ Marcus sends photo
 ### Voice → Transcription + Reply
 
 ```
-Marcus sends voice message
+User sends voice message
   → download .oga/.ogg from Telegram API
   → save to {{AUDIO_PATH}}/imported/telegram/
   → Gemini 2.5 Flash audio transcription → JSON:
@@ -224,7 +224,7 @@ privacy: 3
 
 # Telegram — 2026-04-14
 
-- `12:06` **Marcus:** Message text here
+- `12:06` **User:** Message text here
 - `12:06` *Larry:* Response text here
 - `12:07` 📸 **Foto:** Title (category) → `filename.jpg`
 - `12:14` 🎙️ **Rost:** Summary → `voice-file.oga`

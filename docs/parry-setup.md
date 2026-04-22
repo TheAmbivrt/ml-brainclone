@@ -159,7 +159,7 @@ After **5+ observations** per recipient, Parry automatically flags deviations in
 
 Observations are stored in `.parry-tone-memory.json` (max 50 per recipient).
 
-Built-in recipient profiles (no learning required): `ana`, `bengan`, `miza`, `kund`, `magnus-werner`, `linus-lindh`
+Built-in recipient profiles (no learning required): define your frequent contacts in `parry-tone-profiles.json`
 
 ---
 
