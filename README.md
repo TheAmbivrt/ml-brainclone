@@ -30,13 +30,15 @@ ml-brainclone/
 │   ├── privacy-architecture.md   <- Privacy layers + auto-tagging + tone learning
 │   ├── eval-smoketest.md         <- Regression-check pattern for model swaps + CLAUDE.md edits
 │   ├── skills-system.md          <- Skills: discovery, frontmatter format, self-patch
+│   ├── system-taxonomy.md        <- system/* tag schema + SYSTEM-INDEX pattern (separate system from personal)
 │   └── vault-ingest.md           <- Document conversion tool (MarkItDown)
 ├── templates/
 │   ├── daily.md                  <- Daily note template
 │   ├── project.md                <- Project template
 │   ├── meeting.md                <- Meeting notes template
 │   ├── research.md               <- Research note template
-│   └── smoketest.md              <- 10-test regression smoketest (copy, customize, run)
+│   ├── smoketest.md              <- 10-test regression smoketest (copy, customize, run)
+│   └── system-index.md           <- SYSTEM-INDEX template with Dataview live-catalog
 ├── scripts/
 │   ├── load-context.sh               <- Session init hook (reads active context)
 │   ├── collect-vault-data.sh         <- Nightly vault data collection
@@ -46,6 +48,7 @@ ml-brainclone/
 │   ├── barry_audit.py                <- Unified JSONL audit-log for Barry events
 │   ├── gws_mailer.py                 <- Outgoing-mail helper with local archiving
 │   ├── vault-ingest.py               <- Convert documents (PDF/DOCX/PPTX/XLSX) to vault Markdown
+│   ├── system_tag_batch.py           <- Path-based system/* tagging (idempotent), see docs/system-taxonomy.md
 │   ├── parry-scheduled-task.xml      <- Windows Task Scheduler template for Parry autostart
 │   └── register-parry-task.ps1       <- One-shot registration script (run once at setup)
 ├── architecture/
