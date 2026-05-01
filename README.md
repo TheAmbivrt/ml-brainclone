@@ -19,6 +19,7 @@ ml-brainclone/
 │   ├── larry-setup.md            <- Larry (Claude Code) configuration
 │   ├── barry-setup.md            <- Barry (image agent) setup
 │   ├── harry-setup.md            <- Harry (audio agent) setup
+│   ├── garry-setup.md            <- Garry (spatial agent) setup + Trellis 2 + Blender
 │   ├── mempalace-setup.md        <- MemPalace (semantic memory) setup + GPU config
 │   ├── memory-system.md          <- Persistent memory architecture
 │   ├── parry-setup.md            <- Parry (gatekeeper agent) setup + commands
@@ -74,6 +75,7 @@ ml-brainclone/
 | **Larry** | Text | Orchestrator. Thinks, writes, codes, plans, remembers. | Claude Code (Opus/Sonnet) |
 | **Barry** | Image | Generates images, sorts visual material, maintains visual index. | Venice Chat via Playwright |
 | **Harry** | Audio | Text-to-speech, music, sound effects, mixing. | Gemini TTS (Vertex AI) + FFmpeg |
+| **Garry** | Spatial | Image-to-3D mesh, background removal, Blender import. | Trellis 2 + rembg + Blender |
 
 ### Services (organs)
 
@@ -85,10 +87,10 @@ ml-brainclone/
 | **Tarry** | Time | Reminders, follow-ups, recurring tasks, interrupted session recovery. | Python daemon (tarry_service.py) |
 | **Carry** | Logistics | Transport content in/out/between systems. Pipelines with retry. | Python daemon (carry_service.py) |
 | **Darry** | Sleep | Night shift 2.0: Light/Deep/REM sleep phases. Adaptive nightly processing. | Python daemon (darry_service.py) |
-| **Scarry** | Conscience | Retroactive scanner. Finds procrastinated and forgotten tasks. Asks, never instructs. | Python script (scheduled) |
-| **Farry** | Language | All languages, human and machine. Translation, explanation, code↔code. | Larry skill (inline) |
+| **Scarry** | Conscience | Retroactive scanner. Finds procrastinated and forgotten tasks. Hooked into Darry deep sleep. | Python script (scheduled) |
+| **Farry** | Language | All languages, human and machine. Translation, format conversion, bus integration. | Larry skill (inline) |
 
-Larry orchestrates everything. Barry and Harry are invoked by Larry when needed. Daemons (Parry, Tarry, Carry, Darry) run in the background. Scarry runs on schedule via Darry. Farry and Bert are invoked on demand.
+Larry orchestrates everything. Barry, Harry, and Garry are invoked by Larry when needed. Daemons (Parry, Tarry, Carry, Darry) run in the background. All daemons managed via `daemon-manager.py` (unified start/stop/status/health). Scarry runs on schedule via Darry. Farry and Bert are invoked on demand.
 
 ---
 
@@ -115,6 +117,7 @@ Larry orchestrates everything. Barry and Harry are invoked by Larry when needed.
 | **For MemPalace:** NVIDIA GPU (CUDA) | Recommended | Semantic memory layer (works on CPU too) |
 | **For Barry:** Venice.ai account, Edge, Playwright | Optional | Image generation agent |
 | **For Harry:** GCP + Vertex AI, FFmpeg | Optional | Audio/TTS agent |
+| **For Garry:** Trellis 2, rembg, Blender 4.0+ | Optional | Spatial/3D agent |
 
 ---
 
@@ -171,6 +174,7 @@ Throughout all files, replace these with your own values:
 | [docs/larry-setup.md](docs/larry-setup.md) | Larry (Claude Code) configuration details |
 | [docs/barry-setup.md](docs/barry-setup.md) | Barry (image agent) pipeline |
 | [docs/harry-setup.md](docs/harry-setup.md) | Harry (audio agent) pipeline |
+| [docs/garry-setup.md](docs/garry-setup.md) | Garry (spatial agent) setup: Trellis 2, rembg, Blender |
 | [docs/mempalace-setup.md](docs/mempalace-setup.md) | MemPalace semantic memory + GPU acceleration |
 | [docs/memory-system.md](docs/memory-system.md) | How persistent memory works |
 | [docs/privacy-architecture.md](docs/privacy-architecture.md) | Privacy layers and enforcement |

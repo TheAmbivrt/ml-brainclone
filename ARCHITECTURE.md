@@ -31,7 +31,7 @@ Your primary machine runs Claude Code directly in the vault. Additional machines
 
 ## Agent Architecture
 
-One orchestrator. Two senses. Eight organs. Three bones.
+One orchestrator. Three senses. Eight organs. Three bones.
 
 ### Modalities (senses)
 
@@ -40,21 +40,30 @@ One orchestrator. Two senses. Eight organs. Three bones.
 | **Text (Larry)** | Orchestrator. Thinks, writes, codes, plans, remembers. The main brain. |
 | **Image (Barry)** | Sees, creates, remembers visually. Input (camera/analysis) and output (generation). |
 | **Audio (Harry)** | Hears, speaks, creates music/audio. Voice in, voice out, TTS, transcription, composition. |
+| **Spatial (Garry)** | Shapes, builds, renders. Image-to-3D mesh via Trellis 2, background removal, Blender import. Full asset pipeline with project organization. |
 
 ### Services (organs)
 
 | Service | Role |
 |---------|------|
 | **Memory (Milla)** | Semantic search, knowledge graph, diary, palace traversal. Never forgets. |
-| **Emotion (Bert)** | Sentiment scoring, mood tracking, trend detection. Measures, never interprets. Phase 1 complete: `bert_service.py` (XLM-RoBERTa), `bert_cli.py` (CLI), `bert_batch.py` (batch processing). |
+| **Emotion (Bert)** | Sentiment scoring (-1.0 to +1.0), mood trending, inflection detection with ASCII mood bars. CLI: analyze, trend, status, score. Measures, never interprets. |
 | **Judgment (Parry)** | Privacy enforcement, tone control, quality gating. Flags, never blocks. |
 | **Time (Tarry)** | Reminders, follow-ups, recurring tasks. The agent that lingers. |
 | **Logistics (Carry)** | Transport content in/out/between systems. Pipelines with retry and approval gates. |
 | **Sleep (Darry)** | Night shift 2.0: Light Sleep (quick hygiene), Deep Sleep (heavy processing), REM Sleep (creative insight). |
 | **Conscience (Scarry)** | Retroactive scanner. Finds what you mentioned but never did. Asks, never instructs. |
-| **Language (Farry)** | All languages, human and machine. Translation, explanation, code↔code, agent↔agent bridge. |
+| **Language (Farry)** | All languages, human and machine. Translation, format conversion, bus integration, statistics tracking. CLI: translate, detect, stats, status, ordbok, convert. |
 
 All agents handle all four privacy levels. All have access to the freedom router.
+
+### Infrastructure
+
+| Tool | Role |
+|------|------|
+| **daemon-manager.py** | Unified start/stop/status/health for all daemons. Single CLI to manage entire ecosystem. |
+| **Brains Bus** | SQLite WAL event queue. All inter-agent communication. Parry sees everything. |
+| **FTS5 Index** | Full-text search across vault. BM25-ranked. Rebuilt automatically by Darry. |
 
 ### Orchestration Model
 
@@ -77,6 +86,11 @@ TEXT MODE (primary / Larry)
  │   ├─ "Transcribe this" → STT
  │   ├─ "Read this aloud" → TTS
  │   └─ "Create a jingle" → Music
+ │
+ ├─ Spatial task? → Invokes SPATIAL MODE (Garry)
+ │   ├─ "Make this image 3D" → Trellis 2 pipeline
+ │   ├─ "Remove background" → rembg
+ │   └─ "Import to Blender" → Blender MCP
  │
  ├─ Time task? → Invokes TIME MODE (Tarry daemon)
  │   ├─ "Remind me in 2h" → Reminder queued
@@ -102,8 +116,10 @@ Two patterns for extending the ecosystem:
 
 | Pattern | Examples | Process model | Restart |
 |---------|----------|--------------|---------|
-| **Daemon** | Parry, Tarry | Separate long-running Python process | Windows Task Scheduler / supervisor |
+| **Daemon** | Parry, Tarry, Carry, Darry | Separate long-running Python process | Windows Task Scheduler / daemon-manager |
+| **Session** | Garry | Runs on demand, exits when done | Not needed — Larry invokes directly |
 | **Skill** | Farry | Inline Larry capability, no separate process | Not needed — lives inside Larry |
+| **Scanner** | Scarry, Bert | CLI tool, scheduled or on-demand | Via Darry deep sleep or manual |
 
 Daemons are appropriate for background work that must happen independently of Larry's attention (gating, scheduling). Skills are appropriate for capabilities Larry invokes on demand.
 
